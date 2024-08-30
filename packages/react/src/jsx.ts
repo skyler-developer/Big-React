@@ -1,10 +1,9 @@
 import { REACT_ELEMENT_TYPE } from "shared/ReactSymbols";
 
-import type { ReactElement } from "shared/ReactTypes";
-import { Type, Key, Ref, Props, ElementType } from "shared/ReactTypes";
+import { Type, Key, Ref, Props, ElementType, ReactElementType } from "shared/ReactTypes";
 
 // ReactElement
-const ReactElement = function (type: Type, key: Key, ref: Ref, props: Props): ReactElement {
+const ReactElement = function (type: Type, key: Key, ref: Ref, props: Props): ReactElementType {
     const element = {
         $$typeof: REACT_ELEMENT_TYPE,
         type,
@@ -47,4 +46,28 @@ export const jsx = (type: ElementType, config: any, ...maybeChildren: any) => {
     return ReactElement(type, key, ref, props);
 };
 
-export const jsxDev = jsx;
+export const jsxDEV = (type: ElementType, config: any) => {
+    let key: Key = null;
+    const props: Props = {};
+    let ref: Ref = null;
+    for (const prop in config) {
+        const val = config[prop];
+        if (prop === "key") {
+            if (val !== undefined) {
+                key = String(val);
+            }
+            continue;
+        }
+        if (prop === "ref") {
+            if (val !== "undefined") {
+                ref = val;
+            }
+            continue;
+        }
+        if (config.hasOwnProperty(prop)) {
+            props[prop] = val;
+        }
+    }
+
+    return ReactElement(type, key, ref, props);
+};
