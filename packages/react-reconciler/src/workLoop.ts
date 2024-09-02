@@ -1,14 +1,34 @@
 import { beginWork } from "./beginWork";
 import { completeWork } from "./completeWork";
-import { FiberNode } from "./fiber";
+import { createWorkInProgress, FiberNode, FiberRootNode } from "./fiber";
+import { HostRoot } from "./workTags";
 
 let workInProgress: FiberNode | null = null;
 
-function prepareFreshStack(fiber: FiberNode) {
-    workInProgress = fiber;
+function prepareFreshStack(root: FiberRootNode) {
+    workInProgress = createWorkInProgress(root.current, {});
 }
 
-function renderRoot(root: FiberNode) {
+export function scheduleUpdateOnFiber(fiber: FiberNode) {
+    // TODO调度功能
+    const root = markUpdateFromFiberToRoot(fiber);
+    renderRoot(root);
+}
+
+function markUpdateFromFiberToRoot(fiber: FiberNode): FiberNode {
+    let node = fiber;
+    let parent = node.return;
+    while (parent !== null) {
+        node = parent;
+        parent = node.return;
+    }
+    if (node.tag === HostRoot) {
+        return node.stateNode;
+    }
+    return null;
+}
+
+function renderRoot(root: FiberRootNode) {
     // 初始化
     prepareFreshStack(root);
     do {
@@ -16,7 +36,7 @@ function renderRoot(root: FiberNode) {
             workLoop();
             break;
         } catch (e) {
-            console.warn("workLoop error", e);
+            if (__DEV__) console.warn("workLoop error", e);
             workInProgress = null;
         }
     } while (true);
